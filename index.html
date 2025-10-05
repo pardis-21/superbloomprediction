@@ -3,210 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NASA Global Bloom Monitor</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <title>BloomWatch: Global Plant Blooming Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-top">
-                <div class="header-title">
-                    <div class="logo">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="2" y1="12" x2="22" y2="12"/>
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1>NASA Global Bloom Monitor</h1>
-                        <p class="subtitle">Real-time MODIS NDVI satellite data and vegetation bloom tracking</p>
-                    </div>
-                </div>
-                <div class="stats">
-                    <div class="stat-badge stat-green">
-                        <span id="bloom-count">5</span> Active Blooms
-                    </div>
-                    <div class="stat-badge stat-blue">
-                        <span id="alert-count">0</span> Alerts
-                    </div>
-                </div>
-            </div>
-            <!-- Controls -->
-            <div class="controls">
-                <select id="region-select" class="control-input">
-                    <option value="global">Global View</option>
-                    <option value="north-america">North America</option>
-                    <option value="europe">Europe</option>
-                    <option value="asia">Asia</option>
-                    <option value="south-america">South America</option>
-                </select>
-                <input type="date" id="date-picker" class="control-input" value="2024-04-15" min="2020-01-01" max="2024-12-31">
-                <button id="animate-btn" class="control-btn btn-primary">
-                    <span id="play-icon">▶</span> Animate
-                </button>
-                <button id="toggle-layer-btn" class="control-btn btn-toggle">
-                    <span>◈</span> NASA NDVI
-                </button>
-            </div>
-            <!-- Opacity Control -->
-            <div class="opacity-control" id="opacity-control">
-                <label style="font-weight: 600; color: #4b5563; font-size: 14px;">Layer Opacity:</label>
-                <input type="range" id="opacity-slider" class="opacity-slider" min="0" max="1" step="0.1" value="0.6">
-                <span class="opacity-value" id="opacity-value">60%</span>
-            </div>
-        </div>
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Map Section -->
-            <div class="card">
-                <div class="card-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                    </svg>
-                    Live NASA GIBS NDVI Map
-                    <span style="margin-left: auto; font-size: 14px; font-weight: normal; color: #6b7280;">
-                        <span style="background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 20px; font-weight: 600;">MODIS Terra</span>
-                        <span style="margin-left: 8px;">• 8-Day Composite</span>
-                    </span>
-                </div>
-                <div id="map"></div>
-                <!-- Legend -->
-                <div class="legend">
-                    <div class="legend-title">NDVI Legend (Normalized Difference Vegetation Index)</div>
-                    <div class="gradient-bar"></div>
-                    <div class="gradient-labels">
-                        <span>-0.1</span>
-                        <span>0.0</span>
-                        <span>0.2</span>
-                        <span>0.4</span>
-                        <span>0.6</span>
-                        <span>0.8</span>
-                        <span>1.0</span>
-                    </div>
-                    <div class="legend-items">
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #654321;"></div>
-                            <span>Water/Bare Soil</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #DEB887;"></div>
-                            <span>Sparse Vegetation</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #7CFC00;"></div>
-                            <span>Healthy Vegetation</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #004d00;"></div>
-                            <span>Peak Bloom/Forest</span>
-                        </div>
-                    </div>
-                    <div class="legend-info">
-                        <strong>About NDVI:</strong> Ranges from -0.1 (water, rocks) to 1.0 (dense vegetation). Values above 0.6 indicate healthy, actively growing plants - perfect for tracking bloom and phenology events.
-                    </div>
-                </div>
-                <!-- Data Source Info -->
-                <div class="data-source-info">
-                    <div class="data-source-title">NASA GIBS Data Source</div>
-                    <div class="data-grid">
-                        <div>
-                            <div class="data-item-label">Satellite:</div>
-                            <div class="data-item-value">Terra MODIS</div>
-                        </div>
-                        <div>
-                            <div class="data-item-label">Resolution:</div>
-                            <div class="data-item-value">250m</div>
-                        </div>
-                        <div>
-                            <div class="data-item-label">Temporal:</div>
-                            <div class="data-item-value">8-Day Composite</div>
-                        </div>
-                        <div>
-                            <div class="data-item-label">Coverage:</div>
-                            <div class="data-item-value">Global</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Alerts -->
-                <div class="card">
-                    <div class="card-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        Bloom Alerts
-                    </div>
-                    <div id="alerts-container">
-                        <p class="no-alerts">No active bloom alerts for current timeframe</p>
-                    </div>
-                </div>
-                <!-- Bloom Events -->
-                <div class="card">
-                    <div class="card-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                            <path d="M2 12a15.3 15.3 0 0 0 10 4 15.3 15.3 0 0 0 10-4 15.3 15.3 0 0 0-10-4 15.3 15.3 0 0 0-10 4z"/>
-                        </svg>
-                        Tracked Bloom Events
-                    </div>
-                    <div id="bloom-events" class="bloom-events"></div>
-                </div>
-                <!-- Predictions -->
-                <div class="card">
-                    <div class="card-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                        </svg>
-                        Bloom Predictions & Insights
-                    </div>
-                    <div id="predictions" class="insights">
-                        <div class="insight-card insight-purple">
-                            <div class="insight-title">🔮 Predictive Analytics</div>
-                            <p>Analyzing NDVI trends to forecast bloom timing...</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- How Predictions Work -->
-                <div class="card" style="background: #fef3c7; border-color: #fbbf24;">
-                    <div class="card-title" style="color: #92400e;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="16" x2="12" y2="12"/>
-                            <line x1="12" y1="8" x2="12.01" y2="8"/>
-                        </svg>
-                        How Bloom Prediction Works
-                    </div>
-                    <div style="font-size: 13px; color: #78350f; line-height: 1.6;">
-                        <p style="margin-bottom: 10px;"><strong>Data Sources Used:</strong></p>
-                        <ul style="margin-left: 20px; margin-bottom: 10px;">
-                            <li>NDVI trends (8-day historical data)</li>
-                            <li>Historical bloom patterns (past 5 years)</li>
-                            <li>Growing Degree Days (temperature accumulation)</li>
-                            <li>Soil moisture indicators</li>
-                        </ul>
-                        <p style="margin-bottom: 10px;"><strong>Prediction Method:</strong></p>
-                        <ul style="margin-left: 20px;">
-                            <li>Compare current NDVI to historical averages</li>
-                            <li>Detect early greening patterns (2-3 weeks ahead)</li>
-                            <li>Track vegetation rate of change</li>
-                            <li>Cross-reference with phenology models</li>
-                        </ul>
-                        <p style="margin-top: 10px; padding: 8px; background: #fffbeb; border-radius: 6px;">
-                            <strong>Accuracy:</strong> 7-14 day predictions are ~70-85% accurate. Combine with local weather forecasts and citizen science observations for best results.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="app.js"></script>
+    <header>
+        <h1>BloomWatch: Explore the planet by tracking blooms!</h1>
+        <p>Monitor plant blooms using NASA Earth Data</p>
+    </header>
+    <main>
+        <section id="controls">
+            <input type="text" id="location-search" placeholder="Search location...">
+            <button id="search-btn">Search</button>
+        </section>
+        <div id="map-container"></div>
+        <section id="timeline">
+            <label for="date-slider">Date Range:</label>
+            <input type="range" id="date-slider" min="2020" max="2025" value="2025" step="1">
+            <span id="selected-year">2025</span>
+        </section>
+        <section id="info-panel">
+            <h2>Bloom Details:</h2>
+            <p id="bloom-info">Click on the map for bloom details...</p>
+        </section>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js"></script>
 </body>
 </html>
